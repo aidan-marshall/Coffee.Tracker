@@ -7,7 +7,7 @@ namespace CoffeeTracker.Repositories;
 
 public class CoffeeRecordRepository(NpgsqlConnection connection)
 {
-    private readonly QueryFactory _QueryFactory = new QueryFactory(connection, new SqlServerCompiler());
+    private readonly QueryFactory _QueryFactory = new QueryFactory(connection, new PostgresCompiler());
 
     public int InsertCoffeeRecord(CoffeeRecord record) 
     {
