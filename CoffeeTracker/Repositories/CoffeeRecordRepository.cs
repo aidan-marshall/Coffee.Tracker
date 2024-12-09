@@ -1,21 +1,30 @@
-﻿using SqlKata.Execution;
-using Npgsql;
-using SqlKata.Compilers;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace CoffeeTracker.Repositories;
 
-public class CoffeeRecordRepository(NpgsqlConnection connection)
+public class CoffeeRecordRepository(CoffeeTrackerContext context)
 {
-    private readonly QueryFactory _queryFactory = new (connection, new PostgresCompiler());
-
-    public int InsertCoffeeRecord(CoffeeRecord record) 
+    public async Task<int> InsertCoffeeRecordAsync(CoffeeRecord record)
     {
-
-        return _queryFactory.Query("records").InsertGetId<int>(new {
-            user_id = record.UserId,
-            time_of_consumption = record.TimeOfConsumption,
-            coffee_type = record.CoffeeType,
-            location = record.Location
-        });
+        context.Records.Add(record);
+        await context.SaveChangesAsync();
+        return record.Id;
+    }
+    
+    public async Task<CoffeeRecord> GetCoffeeRecordAsync(int id)
+    {
+        var result = await context.Records.FindAsync(id);
+        
+        if (result == null)
+        {
+            throw new KeyNotFoundException();
+        }
+        
+        return result;
+    }
+    
+    public async Task<IEnumerable<CoffeeRecord>> GetCoffeeRecordsAsync()
+    {
+        return await context.Records.ToListAsync();
     }
 }
