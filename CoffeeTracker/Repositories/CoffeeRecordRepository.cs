@@ -1,5 +1,4 @@
-﻿using SqlKata;
-using SqlKata.Execution;
+﻿using SqlKata.Execution;
 using Npgsql;
 using SqlKata.Compilers;
 
@@ -7,15 +6,15 @@ namespace CoffeeTracker.Repositories;
 
 public class CoffeeRecordRepository(NpgsqlConnection connection)
 {
-    private readonly QueryFactory _QueryFactory = new QueryFactory(connection, new PostgresCompiler());
+    private readonly QueryFactory _queryFactory = new (connection, new PostgresCompiler());
 
     public int InsertCoffeeRecord(CoffeeRecord record) 
     {
 
-        return _QueryFactory.Query("records").InsertGetId<int>(new {
-            userid = record.UserId,
-            timeofconsumption = record.TimeOfConsumption,
-            coffeetype = record.CoffeeType,
+        return _queryFactory.Query("records").InsertGetId<int>(new {
+            user_id = record.UserId,
+            time_of_consumption = record.TimeOfConsumption,
+            coffee_type = record.CoffeeType,
             location = record.Location
         });
     }

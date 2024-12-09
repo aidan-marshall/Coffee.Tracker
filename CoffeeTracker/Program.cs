@@ -4,22 +4,26 @@ using CoffeeTracker.Services;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = Environment.GetEnvironmentVariable("COFFEE_TRACKER_CONNECTION_STRING");
+builder.Services.AddTransient<CoffeeRecordRepository>(
+    _ =>
+    {
+        var connection = new NpgsqlConnection(connectionString);
+        return new CoffeeRecordRepository(connection);
+    });
+builder.Services.AddTransient<CoffeRecordService>();
+
 var app = builder.Build();
 
 app.MapGet("/", () => {
     return Results.Ok("Hello, World!");
 });
 
-app.MapPost("/coffee/create", (CoffeeRecord coffeeRecord) => {
-    
-    var connection = new NpgsqlConnection(connectionString: "Host=localhost;Port=5432;Username=postgres;Password=random;Database=CoffeeTracker;");
-    var coffeRecordRepository = new CoffeeRecordRepository(connection);
-    var coffeRecordService = new CoffeRecordService(coffeRecordRepository);
-
-    var recordId = coffeRecordService.CreateCoffeRecord(coffeeRecord);
+app.MapPost("/coffee", (CoffeeRecord coffeeRecord) => {
+    var coffeeRecordService = app.Services.GetRequiredService<CoffeRecordService>();
+    var recordId = coffeeRecordService.CreateCoffeRecord(coffeeRecord);
 
     return Results.Ok(recordId);
-
     });
 
 app.Run();

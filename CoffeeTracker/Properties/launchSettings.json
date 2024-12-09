@@ -15,7 +15,8 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5076",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "COFFEE_TRACKER_CONNECTION_STRING": "Host=localhost;Port=5432;Username=postgres;Password=random12345;Database=COFFEE_TRACKER;"  
       }
     },
     "https": {
