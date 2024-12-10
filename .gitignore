@@ -35,3 +35,19 @@ msbuild.wrn
 
 # Visual Studio 2015
 .vs/
+
+# Node.js and React
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+
+# npm package locks
+package-lock.json
+yarn.lock

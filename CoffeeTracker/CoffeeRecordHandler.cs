@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace CoffeeTracker.Repositories;
+namespace CoffeeTracker;
 
-public class CoffeeRecordRepository(CoffeeTrackerContext context)
+public class CoffeeRecordHandler(CoffeeTrackerContext context)
 {
-    public async Task<int> InsertCoffeeRecordAsync(CoffeeRecord record)
+    public async Task<CoffeeRecord> InsertCoffeeRecordAsync(CoffeeRecord record)
     {
-        context.Records.Add(record);
+        var result = context.Records.Add(record);
         await context.SaveChangesAsync();
-        return record.Id;
+        return result.Entity;
     }
     
     public async Task<CoffeeRecord> GetCoffeeRecordAsync(int id)
@@ -17,7 +17,7 @@ public class CoffeeRecordRepository(CoffeeTrackerContext context)
         
         if (result == null)
         {
-            throw new KeyNotFoundException();
+            throw new KeyNotFoundException($"Record with id {id} not found.");
         }
         
         return result;
