@@ -1,13 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {HomePage} from "./pages/HomePage";
+import {AddCoffeeRecordForm} from "./forms/CoffeeRecordForm";
+import NotFoundPage from "./pages/NotFoundPage";
+
+const router = createBrowserRouter([
+    {
+        path: '/',
+        element: <HomePage />,
+        errorElement: <NotFoundPage />,
+    },
+    {
+       path: '/add',
+         element: <AddCoffeeRecordForm />, 
+    }
+]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 

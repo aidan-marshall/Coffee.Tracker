@@ -1,26 +1,24 @@
 ﻿import {useEffect, useState} from "react";
-import {GetAll} from "../CoffeeTrackerClient";
+import CoffeeTrackerClient from "../api/CoffeeTrackerClient";
 
 export function DisplayAllCoffeeRecords() {
-    const [coffeeRecords, setCoffeeRecords] = useState([]); // Initialize as an empty array
+    const [coffeeRecords, setCoffeeRecords] = useState([]);
 
     useEffect(() => {
-        GetAll().then(data => {
+        CoffeeTrackerClient.getAll().then(data => {
             if (data) {
-                setCoffeeRecords(data);  // Populate with data if it's available
+                setCoffeeRecords(data);
             } else {
-                setCoffeeRecords([]);    // Set to empty array if no data
+                setCoffeeRecords([]); 
             }
         }).catch(err => {
             console.error("Error fetching coffee records:", err);
-            setCoffeeRecords([]);  // Handle errors gracefully by setting to empty array
+            setCoffeeRecords([]);
         });
     }, []);
 
-    // Add a check to ensure `coffeeRecords` is an array before calling `.map()`
     return (
         <div>
-            <h1>All Coffee Records</h1>
             {coffeeRecords && coffeeRecords.length > 0 ? (
                 <ul>
                     {coffeeRecords.map(coffeeRecord => (
@@ -30,7 +28,7 @@ export function DisplayAllCoffeeRecords() {
                     ))}
                 </ul>
             ) : (
-                <p>No coffee records found</p>  // Display a message if no records are available
+                <p>No coffee records found</p>
             )}
         </div>
     );
