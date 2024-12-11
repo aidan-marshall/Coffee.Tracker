@@ -23,9 +23,16 @@ export function AddCoffeeRecordForm() {
     // Handle form submission
     const handleSubmit = async (event) => {
         event.preventDefault();
+        
+        const utcTime = new Date(formData.timeOfConsumption).toISOString();
+        
+        const payload = {
+            ...formData,
+            timeOfConsumption: utcTime,
+        };
 
         try {
-            await CoffeeTrackerClient.addCoffeeRecord(formData);
+            await CoffeeTrackerClient.addCoffeeRecord(payload);
             setMessage("Coffee record successfully added!");
             setFormData({
                 userId: "",

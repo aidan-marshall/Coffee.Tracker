@@ -6,6 +6,8 @@ public class CoffeeRecordHandler(CoffeeTrackerContext context)
 {
     public async Task<CoffeeRecord> InsertCoffeeRecordAsync(CoffeeRecord record)
     {
+        record.TimeOfConsumption = record.TimeOfConsumption.ToUniversalTime();
+    
         var result = context.Records.Add(record);
         await context.SaveChangesAsync();
         return result.Entity;
