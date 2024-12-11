@@ -2,7 +2,8 @@ using CoffeeTracker;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = Environment.GetEnvironmentVariable("COFFEE_TRACKER_CONNECTION_STRING");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<CoffeeTrackerContext>(options =>
     options.UseNpgsql(connectionString));
@@ -17,53 +18,53 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
+
 var app = builder.Build();
 
 app.UseCors("AllowAll");
 
 app.MapGet("/", () => Results.Ok("Hello, World!"));
 
-app.MapPost("/coffee", async (CoffeeRecord coffeeRecord, CoffeeRecordHandler repository) =>
+app.MapPost("/coffee", async (CoffeeRecord coffeeRecord, CoffeeRecordHandler dbHandler) =>
 {
     try
     {
-        var recordId = await repository.InsertCoffeeRecordAsync(coffeeRecord);
+        var recordId = await dbHandler.InsertCoffeeRecordAsync(coffeeRecord);
         return Results.Ok(recordId);
     }
-    catch (Exception e)
+    catch (Exception)
     {
-        Console.WriteLine(e);
-        throw;
+        return Results.Problem("Internal server error.");
     }
 });
 
-app.MapGet("/coffee", async (CoffeeRecordHandler repository) =>
+app.MapGet("/coffee", async (CoffeeRecordHandler dbHandler) =>
 {
     try
     {
-        var records = await repository.GetCoffeeRecordsAsync();
+        var records = await dbHandler.GetCoffeeRecordsAsync();
         return Results.Ok(records);
     }
-    catch (Exception ex)
+    catch (Exception)
     {
-        return Results.Problem(ex.Message);
+        return Results.Problem("Internal server error.");
     }
 });
 
-app.MapGet("coffee/{id}", async (int id, CoffeeRecordHandler repository) =>
+app.MapGet("coffee/{id}", async (int id, CoffeeRecordHandler dbHandler) =>
 {
     try
     {
-        var record = await repository.GetCoffeeRecordAsync(id);
+        var record = await dbHandler.GetCoffeeRecordAsync(id);
         return Results.Ok(record);
     }
-    catch (KeyNotFoundException)
+    catch (KeyNotFoundException ex)
     {
-        return Results.NotFound();
+        return Results.NotFound(ex.Message);
     }
-    catch (Exception ex)
+    catch (Exception)
     {
-        return Results.Problem(ex.Message);
+        return Results.Problem("Internal server error.");
     }
 });
 
