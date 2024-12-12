@@ -23,14 +23,14 @@ var app = builder.Build();
 
 app.UseCors("AllowAll");
 
-app.MapGet("/", () => Results.Ok("Hello, World!"));
+app.MapGet("/", () => Results.Ok("Welcome to Coffee Tracker!"));
 
 app.MapPost("/coffee", async (CoffeeRecord coffeeRecord, CoffeeRecordHandler dbHandler) =>
 {
     try
     {
-        var recordId = await dbHandler.InsertCoffeeRecordAsync(coffeeRecord);
-        return Results.Ok(recordId);
+        var record = await dbHandler.InsertCoffeeRecordAsync(coffeeRecord);
+        return Results.Ok(record);
     }
     catch (Exception)
     {
@@ -51,7 +51,7 @@ app.MapGet("/coffee", async (CoffeeRecordHandler dbHandler) =>
     }
 });
 
-app.MapGet("coffee/{id}", async (int id, CoffeeRecordHandler dbHandler) =>
+app.MapGet("coffee/{id:int}", async (int id, CoffeeRecordHandler dbHandler) =>
 {
     try
     {
