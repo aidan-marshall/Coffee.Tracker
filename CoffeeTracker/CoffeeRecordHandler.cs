@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoffeeTracker;
 
-public class CoffeeRecordHandler(CoffeeTrackerContext context, ILogger<CoffeeRecordHandler> logger)
+public class CoffeeRecordHandler(CoffeeTrackerContext context, IHubContext<CoffeeHub> hubContext, ILogger<CoffeeRecordHandler> logger)
 {
     public async Task<CoffeeRecord> InsertCoffeeRecordAsync(CoffeeRecord record)
     {
@@ -15,6 +16,9 @@ public class CoffeeRecordHandler(CoffeeTrackerContext context, ILogger<CoffeeRec
 
             var result = context.Records.Add(record);
             await context.SaveChangesAsync();
+
+            var allRecords = await context.Records.ToListAsync();
+            await hubContext.Clients.All.SendAsync("RecordAdded", allRecords);
             
             return result.Entity;
         }

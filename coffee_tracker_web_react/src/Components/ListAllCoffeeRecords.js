@@ -1,64 +1,81 @@
-﻿import {useEffect, useState} from "react";
+﻿import {useEffect, useRef, useState} from "react";
 import CoffeeTrackerClient from "../api/CoffeeTrackerClient";
+import {HubConnectionBuilder} from "@microsoft/signalr";
+import {useWebSocket} from "../WebSocketContext";
 
 export function DisplayAllCoffeeRecords() {
     const [coffeeRecords, setCoffeeRecords] = useState([]);
-    const [filteredRecords, setFilteredRecords] = useState([]);
+    const [displayedRecords, setDisplayedRecords] = useState([]);
     const [filterDate, setFilterDate] = useState("");
 
-    useEffect(() => {
-        CoffeeTrackerClient.getAll()
-            .then(data => {
-            if (data) {
-                setCoffeeRecords(data);
-                setFilteredRecords(data);
-            }
-        }).catch(err => {
-            console.error("Error fetching coffee records:", err);
-            setCoffeeRecords([]);
-            setFilteredRecords([]);
-        });
-    }, []);
-    
+    const webSocket = useWebSocket();
+
+    const filteredCoffeeRecords = () => {
+        return coffeeRecords.filter(record =>
+            new Date(record.timeOfConsumption).toISOString().slice(0, 10) === filterDate);
+    };
+
     const handleFilterChange = (e) => {
         const selectedDate = e.target.value;
         setFilterDate(selectedDate);
-        
+
         if (selectedDate) {
-            const filtered = coffeeRecords.filter(record => 
-            new Date(record.timeOfConsumption).toISOString().slice(0, 10) === selectedDate
-            );
-            setFilteredRecords(filtered);
-        }
-        else {
-            setFilteredRecords(coffeeRecords);
+            const filtered = filteredCoffeeRecords();
+            setDisplayedRecords(filtered);
+        } else {
+            setDisplayedRecords(coffeeRecords);
         }
     };
 
-    return (
+    useEffect(() => {
 
-        <div>
+        CoffeeTrackerClient.getAll().then(records =>
+        {
+            setCoffeeRecords(records);
+            setDisplayedRecords(records);
+        });
+
+        if (webSocket) {
+            webSocket.on("RecordAdded", (updatedRecords) => {
+            console.log("New record added: updating records...", updatedRecords);
+            setCoffeeRecords(updatedRecords);
+            setDisplayedRecords(updatedRecords);
+      });
+    }
+
+        return () => {
+            if (webSocket) {
+                webSocket.off("RecordAdded");
+            }
+            }
+    }, [webSocket, coffeeRecords]);
+
+
+
+        return (
+
             <div>
-                <label htmlFor="filter-date">Filter by Date:</label>
-                <input
-                    type="date"
-                    id="filter-date"
-                    value={filterDate}
-                    onChange={handleFilterChange}
-                />
+                <div>
+                    <label htmlFor="filter-date">Filter by Date:</label>
+                    <input
+                        type="date"
+                        id="filter-date"
+                        value={filterDate}
+                        onChange={handleFilterChange}
+                    />
+                </div>
+
+                {displayedRecords && displayedRecords.length > 0 ? (
+                    <ul>
+                        {displayedRecords.map(coffeeRecord => (
+                            <li key={coffeeRecord.id}>
+                                {coffeeRecord.location} - {coffeeRecord.coffeeType} at {new Date(coffeeRecord.timeOfConsumption).toLocaleString()}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No coffee records found</p>
+                )}
             </div>
-            
-            {filteredRecords && filteredRecords.length > 0 ? (
-                <ul>
-                    {filteredRecords.map(coffeeRecord => (
-                        <li key={coffeeRecord.id}>
-                            {coffeeRecord.location} - {coffeeRecord.coffeeType} at {new Date(coffeeRecord.timeOfConsumption).toLocaleString()}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No coffee records found</p>
-            )}
-        </div>
-    );
-}
+        );
+    }

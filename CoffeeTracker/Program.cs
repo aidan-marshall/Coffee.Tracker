@@ -12,16 +12,18 @@ builder.Services.AddTransient<CoffeeRecordHandler>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+    options.AddPolicy("reactApp", policy =>
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+app.UseCors("reactApp");
 
 app.MapGet("/", () => Results.Ok("Welcome to Coffee Tracker!"));
 
@@ -30,6 +32,7 @@ app.MapPost("/coffee", async (CoffeeRecord coffeeRecord, CoffeeRecordHandler dbH
     try
     {
         var record = await dbHandler.InsertCoffeeRecordAsync(coffeeRecord);
+        
         return Results.Ok(record);
     }
     catch (Exception)
@@ -67,5 +70,7 @@ app.MapGet("coffee/{id:int}", async (int id, CoffeeRecordHandler dbHandler) =>
         return Results.Problem("Internal server error.");
     }
 });
+
+app.MapHub<CoffeeHub>("/coffeeHub");
 
 app.Run();
